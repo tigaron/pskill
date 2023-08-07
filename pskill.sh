@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
 # Description: Kill processes filtered by command that match the given pattern and has been started from more than given number of days ago.
-# Usage: pskill.sh <pattern> <days>
+# Usage: pskill.sh <pattern> <days> [--dry-run]
 
 # set -x
 
-# check if two arguments were passed
-if [ $# -ne 2 ]; then
-  echo "usage: pskill.sh <pattern> <days>"
+# check if two or three arguments were passed
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "usage: pskill.sh <pattern> <days> [--dry-run]"
   exit 1
 fi
 
 pattern=$1
 days=$2
+dry_run=false
+
+# check if third argument is --dry-run
+if [ $# -eq 3 ] && [ "$3" == "--dry-run" ]; then
+  dry_run=true
+fi
 
 # check if second argument is a positive integer greater than 0
 if ! [[ "$days" =~ ^[1-9][0-9]*$ ]]; then
@@ -37,8 +43,12 @@ ps aux | grep "$pattern" | grep -v grep | while read line; do
   if [ $diff -gt $days ]; then
     echo $line
     echo "process $pid started $diff days ago"
-    # kill -9 $pid
-    echo "process $pid killed"
+    if [ "$dry_run" = false ]; then
+      kill -9 $pid
+      echo "process $pid killed"
+    else
+      echo "dry-run: process $pid would have been killed"
+    fi
     echo ""
   fi
 done
