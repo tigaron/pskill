@@ -51,7 +51,7 @@ while read line; do
   if [ $diff -gt $days ]; then
     echo $line
     echo "process $pid started $diff days ago"
-    memory_saved=$((memory_saved+$(pmap $pid | tail -n 1 | awk '{print $2}' | sed 's/K//')))
+    memory_saved=$((memory_saved+$(echo $line | awk '{print $6}')))
 
     if ! $dry_run; then
       kill -9 $pid
