@@ -15,6 +15,7 @@ days=$2
 dry_run=false
 process_killed=false
 process_count=0
+memory_saved=0
 
 # check if third argument is --dry-run
 if [ $# -eq 3 ]; then
@@ -50,6 +51,7 @@ while read line; do
   if [ $diff -gt $days ]; then
     echo $line
     echo "process $pid started $diff days ago"
+    memory_saved=$((memory_saved+$(pmap $pid | tail -n 1 | awk '{print $2}' | sed 's/K//')))
 
     if ! $dry_run; then
       kill -9 $pid
@@ -68,8 +70,10 @@ if ! $process_killed; then
   echo "no processes found matching pattern '$pattern' and started more than $days days ago"
 elif $dry_run; then
   echo "dry-run: $process_count processes matching pattern '$pattern' and started more than $days days ago would have been killed"
+  echo "dry-run: total memory that would have been saved $(($memory_saved/1024)) MB"
 else
   echo "all processes matching pattern '$pattern' and started more than $days days ago have been killed"
+  echo "total memory saved $(($memory_saved/1024)) MB"
 fi
 
 exit 0
