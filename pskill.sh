@@ -14,6 +14,7 @@ pattern=$1
 days=$2
 dry_run=false
 process_killed=false
+process_count=0
 
 # check if third argument is --dry-run
 if [ $# -eq 3 ]; then
@@ -55,6 +56,7 @@ while read line; do
       echo "process $pid killed"
     else
       echo "dry-run: process $pid would have been killed"
+      process_count=$((process_count+1))
     fi
 
     process_killed=true
@@ -64,6 +66,8 @@ done < <(ps aux | grep "$pattern" | grep -v grep)
 
 if ! $process_killed; then
   echo "no processes found matching pattern '$pattern' and started more than $days days ago"
+elif $dry_run; then
+  echo "dry-run: $process_count processes matching pattern '$pattern' and started more than $days days ago would have been killed"
 else
   echo "all processes matching pattern '$pattern' and started more than $days days ago have been killed"
 fi
